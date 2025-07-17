@@ -5,7 +5,9 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "test": "bun test",
-    "lint": "eslint . "
+    "lint": "bun run lint:eslint && bun run lint:prettier",
+    "lint:eslint": "eslint .",
+    "lint:prettier": "prettier --check ."
   },
   "devDependencies": {
     "@eslint/js": "^9.31.0",
