@@ -1,49 +1,147 @@
-import { red7, red8, red9, red10, black7, joker } from "../fixtures";
+import { TileRun, InvalidTileRemovalError } from "../../src/tile-run";
 import { describe, expect, test } from "bun:test";
-import { isValidTileRun } from "../../src/tile-run";
+import { red7, red8, red9, red10, joker, black7 } from "../fixtures";
+import {
+  MissingTileError,
+  InvalidJokerTileRemovalError,
+} from "../../src/tile-set";
 
 describe("tile-run", () => {
-  test("not valid if empty", () => {
-    expect(isValidTileRun([])).toBe(false);
+  describe("validity", () => {
+    test("is not valid if less than 3 tiles", () => {
+      const run = new TileRun([red7]);
+      expect(run.isValid()).toBe(false);
+    });
+
+    test("is valid if 3 tiles", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(run.isValid()).toBe(true);
+    });
+
+    test("is valid if more than 3 tiles", () => {
+      const run = new TileRun([red7, red8, red9, joker]);
+      expect(run.isValid()).toBe(true);
+    });
   });
 
-  test("not valid for single tile", () => {
-    expect(isValidTileRun([red7])).toBe(false);
+  describe("adding tiles", () => {
+    test("can add a tile to the run", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(run.check(red10)).toBe(true);
+      expect(run.add(red10)).toBe(null);
+      expect(run.isValid()).toBe(true);
+    });
+
+    test("cannot add a tile with a different color", () => {
+      const run = new TileRun([red8, red9, red10]);
+      expect(run.check(black7)).toBe(false);
+    });
+
+    test("cannot add a tile that does not match the run", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(run.check(red7)).toBe(false);
+    });
+
+    test("cannot add a tile that does not match the run with a joker", () => {
+      const run = new TileRun([joker, red8, red9]);
+      expect(run.check(red8)).toBe(false);
+    });
+
+    test("can add a tile to replace a joker at the start of the run", () => {
+      const run = new TileRun([joker, red8, red9]);
+      expect(run.check(red7)).toBe(true);
+      expect(run.add(red7)).toBe(joker);
+      expect(run.isValid()).toBe(true);
+    });
+
+    test("can add a tile to replace a joker at the end of the run", () => {
+      const run = new TileRun([red7, red8, joker]);
+      expect(run.check(red9)).toBe(true);
+      expect(run.add(red9)).toBe(joker);
+      expect(run.isValid()).toBe(true);
+    });
+
+    test("can add a tile to replace a joker in the middle of the run", () => {
+      const run = new TileRun([red7, joker, red9]);
+      expect(run.check(red8)).toBe(true);
+      expect(run.add(red8)).toBe(joker);
+      expect(run.isValid()).toBe(true);
+    });
+
+    test("can add a numbered tile to an empty run", () => {
+      const run = new TileRun([]);
+      expect(run.check(red7)).toBe(true);
+      expect(run.add(red7)).toBe(null);
+      expect(run.check(red8)).toBe(true);
+      expect(run.check(red7)).toBe(false);
+      expect(run.check(black7)).toBe(false);
+    });
+
+    test("can add a joker to an empty run", () => {
+      const run = new TileRun([]);
+      expect(run.check(joker)).toBe(true);
+      expect(run.add(joker)).toBe(null);
+      expect(run.isValid()).toBe(false);
+    });
+
+    test("can add a numberered tile to a run with a single joker", () => {
+      const run = new TileRun([joker]);
+      expect(run.check(red7)).toBe(true);
+      expect(run.add(red7)).toBe(joker);
+      expect(run.isValid()).toBe(false);
+    });
+
+    test("can add a numbered tile to a run with a multiple jokers", () => {
+      const run = new TileRun([joker, joker]);
+      expect(run.check(red7)).toBe(true);
+      expect(run.add(red7)).toBe(joker);
+      expect(run.isValid()).toBe(false);
+    });
   });
 
-  test("is valid for run of 3", () => {
-    expect(isValidTileRun([red7, red8, red9])).toBe(true);
+  describe("removing tiles", () => {
+    test("can remove a tile from the run", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(run.remove(red7)).toBe(red7);
+      expect(run.isValid()).toBe(false);
+    });
+
+    test("cannot remove a tile that is not in the run", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(() => run.remove(red10)).toThrow(MissingTileError);
+    });
+
+    test("cannot remove a tile that is not the first or last tile", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(() => run.remove(red8)).toThrow(InvalidTileRemovalError);
+    });
+
+    test("cannot remove a joker tile", () => {
+      expect(() => new TileRun([]).remove(joker)).toThrow(
+        InvalidJokerTileRemovalError,
+      );
+    });
   });
 
-  test("is valid for run of 4", () => {
-    expect(isValidTileRun([red7, red8, red9, red10])).toBe(true);
-  });
+  describe("getting removable tiles", () => {
+    test("returns an empty array if the run is less than 3 tiles", () => {
+      const run = new TileRun([red7]);
+      expect(run.getRemovableTiles()).toEqual([]);
+    });
 
-  test("order doesnt matter", () => {
-    expect(isValidTileRun([red9, red8, red7])).toBe(true);
-  });
+    test("returns an empty array if the run is exactly 3 tiles", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(run.getRemovableTiles()).toEqual([]);
+    });
 
-  test("is not valid if color mismatch", () => {
-    expect(isValidTileRun([black7, red8, red9])).toBe(false);
-  });
+    test("returns the first and last tiles if they are not jokers", () => {
+      const run = new TileRun([red7, red8, red9, red10]);
+      expect(run.getRemovableTiles()).toEqual([red7, red10]);
+    });
 
-  test("is valid with joker", () => {
-    expect(isValidTileRun([red7, joker, red9])).toBe(true);
-  });
-
-  test("is valid with multiple jokers", () => {
-    expect(isValidTileRun([joker, red7, joker, red10])).toBe(true);
-  });
-
-  test("not valid with gap", () => {
-    expect(isValidTileRun([red7, red8, red10])).toBe(false);
-  });
-
-  test("not valid with gap even with joker", () => {
-    expect(isValidTileRun([red7, joker, red10])).toBe(false);
-  });
-
-  test("not valid with repeat", () => {
-    expect(isValidTileRun([red7, red7, red8, red9])).toBe(false);
+    test("does not return jokers if they are the first or last tile", () => {
+      const run = new TileRun([joker, red7, red8, red9, joker]);
+      expect(run.getRemovableTiles()).toEqual([]);
+    });
   });
 });
