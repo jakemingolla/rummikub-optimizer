@@ -123,20 +123,25 @@ describe("tile-run", () => {
     });
   });
 
-  describe("getting swap candidates", () => {
+  describe("getting removable tiles", () => {
     test("returns an empty array if the run is less than 3 tiles", () => {
       const run = new TileRun([red7]);
-      expect(run.getSwapCandidates()).toEqual([]);
+      expect(run.getRemovableTiles()).toEqual([]);
+    });
+
+    test("returns an empty array if the run is exactly 3 tiles", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(run.getRemovableTiles()).toEqual([]);
     });
 
     test("returns the first and last tiles if they are not jokers", () => {
-      const run = new TileRun([red7, red8, red9]);
-      expect(run.getSwapCandidates()).toEqual([red7, red9]);
+      const run = new TileRun([red7, red8, red9, red10]);
+      expect(run.getRemovableTiles()).toEqual([red7, red10]);
     });
 
     test("does not return jokers if they are the first or last tile", () => {
       const run = new TileRun([joker, red7, red8, red9, joker]);
-      expect(run.getSwapCandidates()).toEqual([]);
+      expect(run.getRemovableTiles()).toEqual([]);
     });
   });
 });

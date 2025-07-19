@@ -82,15 +82,15 @@ describe("tile-group", () => {
     });
   });
 
-  describe("getting swap candidates", () => {
+  describe("getting removable tiles", () => {
     test("returns an empty array if the group has less than 4 tiles", () => {
       const group = new TileGroup([red7, red7, red7]);
-      expect(group.getSwapCandidates()).toEqual([]);
+      expect(group.getRemovableTiles()).toEqual([]);
     });
 
     test("returns the tiles if the group has more than 3 tiles", () => {
       const group = new TileGroup([red7, red7, red7, red7]);
-      expect(group.getSwapCandidates()).toEqual([red7, red7, red7, red7]);
+      expect(group.getRemovableTiles()).toEqual([red7, red7, red7, red7]);
     });
   });
 });

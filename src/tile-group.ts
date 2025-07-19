@@ -67,7 +67,7 @@ export class TileGroup implements TileSet {
     throw new MissingTileError(tile);
   }
 
-  getSwapCandidates(): Tile[] {
+  getRemovableTiles(): Tile[] {
     if (this.tiles.length <= 3) {
       return [];
     } else {

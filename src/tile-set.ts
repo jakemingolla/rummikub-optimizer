@@ -1,4 +1,4 @@
-import type { Tile } from "./tile";
+import type { JokerTile, Tile } from "./tile";
 
 export class MissingTileError extends Error {
   constructor(tile: Tile) {
@@ -13,9 +13,36 @@ export class InvalidJokerTileRemovalError extends Error {
 }
 
 export interface TileSet {
+  /**
+   * Returns true if the set is valid and can be placed on the board.
+   */
   isValid(): boolean;
+
+  /**
+   * Returns true if the tile can be added to the set, false otherwise.
+   * @param tile The tile to check.
+   */
   check(tile: Tile): boolean;
-  add(tile: Tile): Tile | null;
+
+  /**
+   * Adds a tile to the set. The tile MUST be previously checked with the `check` method returning true.
+   * @param tile The tile to add.
+   * @returns The JokerTile substituted for the added tile, or null if the tile can be added without substitution.
+   */
+  add(tile: Tile): JokerTile | null;
+
+  /**
+   * Removes a tile from the set.
+   * @param tile The tile to remove.
+   * @returns The tile that was removed.
+   * @throws {InvalidJokerTileRemovalError} If the tile is a JokerTile.
+   * @throws {MissingTileError} If the tile is not in the set.
+   */
   remove(tile: Tile): Tile;
-  getSwapCandidates(): Tile[];
+
+  /**
+   * Returns the tiles that can be removed from the set.
+   * @returns The tiles that can be removed from the set.
+   */
+  getRemovableTiles(): Tile[];
 }

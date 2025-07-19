@@ -73,16 +73,13 @@ export class TileRun implements TileSet {
     }
 
     for (let i = 0; i < tiles.length; i++) {
-      console.log(`i: ${i}`);
       const current = tiles.at(i)!;
 
       if (!(current instanceof JokerTile)) {
-        console.log(`current is not a joker`);
         continue;
       }
 
       const next = tiles.at(i + 1);
-      console.log(`current: ${current}, next: ${next}, tile: ${tile}, i: ${i}`);
 
       if (next === undefined) {
         return i;
@@ -118,7 +115,7 @@ export class TileRun implements TileSet {
     }
   }
 
-  add(tile: Tile): Tile | null {
+  add(tile: Tile): JokerTile | null {
     if (tile instanceof JokerTile) {
       this.tiles.push(tile);
       return null;
@@ -126,9 +123,6 @@ export class TileRun implements TileSet {
 
     const insertionIndex = this.getInsertionIndex(tile);
     const existingTile = this.tiles.at(insertionIndex);
-
-    console.log(`insertionIndex: ${insertionIndex}`);
-    console.log(`existingTile: ${existingTile}`);
 
     if (existingTile instanceof JokerTile) {
       this.tiles[insertionIndex] = tile;
@@ -157,8 +151,8 @@ export class TileRun implements TileSet {
     }
   }
 
-  getSwapCandidates(): Tile[] {
-    if (this.tiles.length < 3) {
+  getRemovableTiles(): Tile[] {
+    if (this.tiles.length <= 3) {
       return [];
     }
 
