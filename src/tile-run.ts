@@ -48,8 +48,6 @@ export class TileRun implements TileSet {
   }
 
   private getInsertionIndex(tile: Tile): number {
-    let index = CANNOT_INSERT_SENTINEL;
-
     if (this.tiles.length === 0) return 0;
     if (this.tiles.every((t) => t instanceof JokerTile)) return 0;
     if (tile instanceof JokerTile) return 0;
@@ -90,7 +88,7 @@ export class TileRun implements TileSet {
       }
     }
 
-    return index;
+    return CANNOT_INSERT_SENTINEL;
   }
 
   isValid(): boolean {
