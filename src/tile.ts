@@ -1,8 +1,8 @@
 export enum TileColor {
-  RED = "red",
-  BLUE = "blue",
-  ORANGE = "orange",
-  BLACK = "black",
+  RED = 0,
+  BLUE = 1,
+  ORANGE = 2,
+  BLACK = 3,
 }
 
 export type Tile = NumberedTile | JokerTile;

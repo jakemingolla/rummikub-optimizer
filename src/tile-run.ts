@@ -168,4 +168,8 @@ export class TileRun implements TileSet {
 
     return candidates;
   }
+
+  getTiles(): Tile[] {
+    return this.tiles;
+  }
 }

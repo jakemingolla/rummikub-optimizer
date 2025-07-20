@@ -74,4 +74,8 @@ export class TileGroup implements TileSet {
       return this.tiles;
     }
   }
+
+  getTiles(): Tile[] {
+    return this.tiles;
+  }
 }

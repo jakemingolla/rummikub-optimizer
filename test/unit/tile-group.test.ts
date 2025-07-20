@@ -93,4 +93,21 @@ describe("tile-group", () => {
       expect(group.getRemovableTiles()).toEqual([red7, red7, red7, red7]);
     });
   });
+
+  describe("getting tiles", () => {
+    test("returns the tiles in the group", () => {
+      const group = new TileGroup([red7, red7, red7]);
+      expect(group.getTiles()).toEqual([red7, red7, red7]);
+    });
+
+    test("returns the tiles of an empty group", () => {
+      const group = new TileGroup([]);
+      expect(group.getTiles()).toEqual([]);
+    });
+
+    test("returns the tiles of a group with a joker", () => {
+      const group = new TileGroup([red7, red7, joker]);
+      expect(group.getTiles()).toEqual([red7, red7, joker]);
+    });
+  });
 });

@@ -144,4 +144,21 @@ describe("tile-run", () => {
       expect(run.getRemovableTiles()).toEqual([]);
     });
   });
+
+  describe("getting tiles", () => {
+    test("returns the tiles in the group", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(run.getTiles()).toEqual([red7, red8, red9]);
+    });
+
+    test("returns the tiles of an empty group", () => {
+      const run = new TileRun([]);
+      expect(run.getTiles()).toEqual([]);
+    });
+
+    test("returns the tiles of a group with a joker", () => {
+      const run = new TileRun([red7, red8, joker]);
+      expect(run.getTiles()).toEqual([red7, red8, joker]);
+    });
+  });
 });
