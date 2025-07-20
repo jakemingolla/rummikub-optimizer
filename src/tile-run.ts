@@ -168,4 +168,45 @@ export class TileRun implements TileSet {
 
     return candidates;
   }
+
+  getTiles(): Tile[] {
+    return this.tiles;
+  }
+
+  private getTileNumberForIndex(index: number): number {
+    const tile = this.tiles.at(index)!;
+
+    if (!tile || tile instanceof JokerTile) {
+      return 0;
+    } else {
+      return tile.getNumber();
+    }
+  }
+
+  getScore(): number {
+    let score = 0;
+
+    for (let i = 0; i < this.tiles.length; i++) {
+      const tileNumber = this.getTileNumberForIndex(i);
+
+      if (tileNumber === 0) {
+        const left = this.getTileNumberForIndex(i - 1);
+        const right = this.getTileNumberForIndex(i + 1);
+
+        if (left !== 0) {
+          score += left + 1;
+        } else {
+          score += right - 1;
+        }
+      } else {
+        score += tileNumber;
+      }
+    }
+
+    return score;
+  }
+
+  toString(): string {
+    return `[${this.tiles.map((t) => t.toString()).join(", ")}]`;
+  }
 }

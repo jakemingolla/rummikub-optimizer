@@ -1,9 +1,16 @@
 export enum TileColor {
-  RED = "red",
-  BLUE = "blue",
-  ORANGE = "orange",
-  BLACK = "black",
+  RED = 0,
+  BLUE = 1,
+  ORANGE = 2,
+  BLACK = 3,
 }
+
+export const TileColorToString = {
+  [TileColor.RED]: "Red",
+  [TileColor.BLUE]: "Blue",
+  [TileColor.ORANGE]: "Orange",
+  [TileColor.BLACK]: "Black",
+};
 
 export type Tile = NumberedTile | JokerTile;
 
@@ -33,6 +40,10 @@ export class NumberedTile {
       );
     }
   }
+
+  toString(): string {
+    return `${TileColorToString[this.color]} ${this.number}`;
+  }
 }
 
 export class JokerTile {
@@ -41,5 +52,9 @@ export class JokerTile {
   equals(other: Tile): boolean {
     void other;
     return true;
+  }
+
+  toString(): string {
+    return "Joker";
   }
 }

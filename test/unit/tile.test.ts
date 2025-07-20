@@ -23,4 +23,14 @@ describe("tile", () => {
       expect(joker.equals(red7)).toBe(true);
     });
   });
+
+  describe("toString", () => {
+    test("returns the correct string for numbered tiles", () => {
+      expect(red7.toString()).toBe("Red 7");
+    });
+
+    test("returns the correct string for joker tiles", () => {
+      expect(joker.toString()).toBe("Joker");
+    });
+  });
 });
