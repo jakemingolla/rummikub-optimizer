@@ -1,8 +1,9 @@
 import type { Tile } from "./tile";
-import { JokerTile, NumberedTile } from "./tile";
+import { JokerTile } from "./tile";
 import type { TileSet } from "./tile-set";
 import { TileGroup } from "./tile-group";
 import { TileRun } from "./tile-run";
+import { generateCombinations } from "./utils";
 
 export class Player {
   private hand: Tile[];
@@ -30,94 +31,70 @@ export class Player {
     return this.hand.length === 0;
   }
 
-  private makeTileGroups(): TileGroup[] {
-    const jokers: JokerTile[] = this.hand.filter((t) => t instanceof JokerTile);
-    const groupsOfSameNumber: TileGroup[] = [];
-    const sortedNumberedTiles = this.hand
-      .filter((t) => t instanceof NumberedTile)
-      .sort((a, b) => a.getNumber() - b.getNumber());
-
-    let iterator = 0;
-    let group = new TileGroup([]);
-    while (iterator < sortedNumberedTiles.length) {
-      const tile = sortedNumberedTiles.at(iterator)!;
+  private makeTileGroupFromCombination(combination: Tile[]): TileGroup {
+    const group = new TileGroup([]);
+    for (const tile of combination) {
       if (group.check(tile)) {
         group.add(tile);
       } else {
-        group = new TileGroup([]);
-      }
-      iterator++;
-    }
-
-    // Have to check the last group because we may have added a tile to it
-    // in the while loop above but not pushed to the array.
-    if (group.isValid()) groupsOfSameNumber.push(group);
-
-    for (const joker of jokers) {
-      for (const group of groupsOfSameNumber) {
-        if (group.check(joker)) {
-          group.add(joker);
-        }
+        break;
       }
     }
-
-    return groupsOfSameNumber;
+    return group;
   }
 
-  private makeTileRuns(): TileRun[] {
-    const jokers: JokerTile[] = this.hand.filter((t) => t instanceof JokerTile);
-    const runs: TileRun[] = [];
-
-    const sortedNumberedTilesByColorAndNumber = this.hand
-      .filter((t) => t instanceof NumberedTile)
-      .sort((a, b) => {
-        if (a.getColor() !== b.getColor()) {
-          return a.getColor() - b.getColor();
-        }
-        return a.getNumber() - b.getNumber();
-      });
-
-    let run = new TileRun([]);
-    for (const tile of sortedNumberedTilesByColorAndNumber) {
+  private makeTileRunFromCombination(combination: Tile[]): TileRun {
+    const run = new TileRun([]);
+    for (const tile of combination) {
       if (run.check(tile)) {
         run.add(tile);
       } else {
-        runs.push(run);
-        run = new TileRun([]);
+        break;
       }
     }
+    return run;
+  }
 
-    if (run.isValid()) runs.push(run);
+  makeTileSetsV1(tiles: Tile[]): TileSet[] {
+    const sets: TileSet[] = [];
 
-    for (const joker of jokers) {
-      for (const run of runs) {
-        if (run.check(joker)) {
-          run.add(joker);
+    let combinations = generateCombinations(tiles);
+    let currentCombination: Tile[] | undefined;
+
+    while ((currentCombination = combinations.pop())) {
+      let isValid = false;
+      const group = this.makeTileGroupFromCombination(currentCombination);
+      const run = this.makeTileRunFromCombination(currentCombination);
+
+      if (group.isValid()) {
+        sets.push(group);
+        isValid = true;
+      } else if (run.isValid()) {
+        sets.push(run);
+        isValid = true;
+      }
+
+      if (isValid) {
+        // Clear out the tiles from the current combination from the candidates
+        for (const tile of currentCombination) {
+          const index = tiles.indexOf(tile);
+          if (index !== -1) {
+            tiles.splice(index, 1);
+          }
         }
+        combinations = generateCombinations(tiles);
       }
     }
 
-    return runs;
+    return sets;
   }
 
   makePlay(pool: Tile[], board: TileSet[]): TileSet[] {
     void pool;
     void board;
-    const plays: TileSet[] = [];
-    const tileGroups = this.makeTileGroups();
-    const tileRuns = this.makeTileRuns();
 
-    for (const group of tileGroups) {
-      if (group.isValid()) {
-        plays.push(group);
-      }
-    }
-
-    for (const run of tileRuns) {
-      if (run.isValid()) {
-        plays.push(run);
-      }
-    }
+    const candidates: Tile[] = [...this.hand];
+    const plays = this.makeTileSetsV1(candidates);
 
     for (const play of plays) {
       for (const tile of play.getTiles()) {
@@ -129,5 +106,12 @@ export class Player {
     }
 
     return plays;
+  }
+
+  draw(pool: Tile[]): void {
+    if (pool.length > 0) {
+      const randomSelection = pool[Math.floor(Math.random() * pool.length)];
+      this.hand.push(randomSelection!);
+    }
   }
 }
