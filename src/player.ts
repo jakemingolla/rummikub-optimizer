@@ -4,6 +4,7 @@ import type { TileSet } from "./tile-set";
 import { TileGroup } from "./tile-group";
 import { TileRun } from "./tile-run";
 import { generateCombinations } from "./utils";
+import { MELD_THRESHOLD, JOKER_SCORE } from "./constants";
 
 export class Player {
   private hand: Tile[];
@@ -23,7 +24,7 @@ export class Player {
 
     for (const tile of this.hand) {
       if (tile instanceof JokerTile) {
-        score += 30;
+        score += JOKER_SCORE;
       } else {
         score += tile.getNumber();
       }
@@ -107,9 +108,9 @@ export class Player {
     const candidates: Tile[] = [...this.hand];
     let plays = this.makeTileSets(candidates);
 
-    // If a player has not yet melded, they may ONLY make a single play that is over 30 points.
+    // If a player has not yet melded, they may ONLY make a single play over the meld threshold.
     if (!this.hasMelded()) {
-      plays = plays.filter((play) => play.getScore() >= 30);
+      plays = plays.filter((play) => play.getScore() >= MELD_THRESHOLD);
       if (plays.length > 0) {
         plays = [plays[0]!];
       }
@@ -129,8 +130,9 @@ export class Player {
 
   draw(pool: Tile[]): void {
     if (pool.length > 0) {
-      const randomSelection = pool[Math.floor(Math.random() * pool.length)];
-      this.hand.push(randomSelection!);
+      const randomIndex = Math.floor(Math.random() * pool.length);
+      const removedTile = pool.splice(randomIndex, 1);
+      this.hand.push(removedTile[0]!);
     }
   }
 }

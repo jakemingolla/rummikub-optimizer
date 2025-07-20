@@ -3,6 +3,7 @@ import { Player } from "../../src/player";
 import { joker, black7, red8, red7, red9, red10, red11 } from "../fixtures";
 import { TileGroup } from "../../src/tile-group";
 import { TileRun } from "../../src/tile-run";
+import { MELD_THRESHOLD, JOKER_SCORE } from "../../src/constants";
 
 describe("Player", () => {
   describe("getScore", () => {
@@ -11,9 +12,9 @@ describe("Player", () => {
       expect(player.getScore()).toBe(0);
     });
 
-    it("should have a score of 30 if a joker is in the hand", () => {
+    it("should have a score of JOKER_SCORE if a joker is in the hand", () => {
       const player = new Player([joker]);
-      expect(player.getScore()).toBe(30);
+      expect(player.getScore()).toBe(JOKER_SCORE);
     });
 
     it("should add numbered tiles to the score", () => {
@@ -106,7 +107,7 @@ describe("Player", () => {
       );
       const play = player.makePlay([]);
       expect(play).toHaveLength(1);
-      expect(play.at(0)!.getScore()).toBeGreaterThanOrEqual(30);
+      expect(play.at(0)!.getScore()).toBeGreaterThanOrEqual(MELD_THRESHOLD);
       expect(player.hasWon()).toBe(false);
     });
 
@@ -133,6 +134,54 @@ describe("Player", () => {
     it("should not add a tile to the hand if the pool is empty", () => {
       const player = new Player([]);
       player.draw([]);
+      expect(player.hasWon()).toBe(true);
+    });
+
+    it("should remove the tile from the pool once drawn", () => {
+      const pool = [red7];
+      const player = new Player([]);
+      player.draw(pool);
+      expect(pool).toHaveLength(0);
+    });
+  });
+
+  describe("hasMelded", () => {
+    it("should return false if the player has not melded", () => {
+      const player = new Player([], false);
+      expect(player.hasMelded()).toBe(false);
+    });
+  });
+
+  describe("happy path", () => {
+    it("should draw until a play can be made once melded", () => {
+      const player = new Player([], true);
+      const pool = [red7, red7, red7];
+
+      for (let i = 0; i < 3; i++) {
+        const play = player.makePlay([]);
+        expect(play).toHaveLength(0);
+        player.draw(pool);
+      }
+
+      const play = player.makePlay([]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(21);
+      expect(player.hasWon()).toBe(true);
+    });
+
+    it("should draw until a melding play can be made", () => {
+      const player = new Player([], false);
+      const pool = [red7, red7, red7, red7, red7];
+
+      for (let i = 0; i < 5; i++) {
+        const play = player.makePlay([]);
+        expect(play).toHaveLength(0);
+        player.draw(pool);
+      }
+
+      const play = player.makePlay([]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBeGreaterThanOrEqual(MELD_THRESHOLD);
       expect(player.hasWon()).toBe(true);
     });
   });
