@@ -1,6 +1,6 @@
 import { describe, it, expect } from "bun:test";
 import { Player } from "../../src/player";
-import { joker, black7, red8, red7, red9 } from "../fixtures";
+import { joker, black7, red8, red7, red9, red10, red11 } from "../fixtures";
 import { TileGroup } from "../../src/tile-group";
 import { TileRun } from "../../src/tile-run";
 
@@ -41,21 +41,21 @@ describe("Player", () => {
 
   describe("makePlay", () => {
     it("should return an empty array if no play can be made", () => {
-      const player = new Player([]);
-      const play = player.makePlay([], []);
+      const player = new Player([], true);
+      const play = player.makePlay([]);
       expect(play).toHaveLength(0);
     });
 
     it("should return an empty array if no plays can be made", () => {
-      const player = new Player([red7]);
-      const play = player.makePlay([], []);
+      const player = new Player([red7], true);
+      const play = player.makePlay([]);
       expect(play).toHaveLength(0);
       expect(player.hasWon()).toBe(false);
     });
 
     it("should return a winning tile group if a tile group can be made", () => {
-      const player = new Player([black7, black7, black7]);
-      const play = player.makePlay([], []);
+      const player = new Player([black7, black7, black7], true);
+      const play = player.makePlay([]);
 
       expect(play).toHaveLength(1);
       const group = play.at(0)!;
@@ -67,8 +67,8 @@ describe("Player", () => {
     });
 
     it("should return a winning tile run if a tile run can be made", () => {
-      const player = new Player([red7, red8, red9]);
-      const play = player.makePlay([], []);
+      const player = new Player([red7, red8, red9], true);
+      const play = player.makePlay([]);
 
       expect(play).toHaveLength(1);
       const run = play.at(0)!;
@@ -80,17 +80,45 @@ describe("Player", () => {
     });
 
     it("should not reuse a numbered tile in multiple plays", () => {
-      const player = new Player([red7, red7, red7, red8, red9]);
-      const play = player.makePlay([], []);
+      const player = new Player([red7, red7, red7, red8, red9], true);
+      const play = player.makePlay([]);
 
       expect(play).toHaveLength(1);
     });
 
     it("should not reuse a joker in multiple plays", () => {
-      const player = new Player([red7, red7, red8, joker]);
-      const play = player.makePlay([], []);
+      const player = new Player([red7, red7, red8, joker], true);
+      const play = player.makePlay([]);
 
       expect(play).toHaveLength(1);
+    });
+
+    it("cannot make a play if the player has not melded", () => {
+      const player = new Player([red7, red7, red7], false);
+      const play = player.makePlay([]);
+      expect(play).toHaveLength(0);
+    });
+
+    it("only returns a single melding play if the player has not yet melded", () => {
+      const player = new Player(
+        [red10, red10, red10, red11, red11, red11],
+        false,
+      );
+      const play = player.makePlay([]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBeGreaterThanOrEqual(30);
+      expect(player.hasWon()).toBe(false);
+    });
+
+    it("can make multiple plays if the player has melded", () => {
+      const player = new Player(
+        [red10, red10, red10, red11, red11, red11],
+        true,
+      );
+      const play = player.makePlay([]);
+      expect(play).toHaveLength(2);
+      const scores = play.map((p) => p.getScore());
+      expect(scores.sort((a, b) => a - b)).toEqual([30, 33]);
     });
   });
 

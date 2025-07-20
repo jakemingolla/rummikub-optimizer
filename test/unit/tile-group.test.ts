@@ -110,4 +110,33 @@ describe("tile-group", () => {
       expect(group.getTiles()).toEqual([red7, red7, joker]);
     });
   });
+
+  describe("getting score", () => {
+    test("returns 0 if the group is empty", () => {
+      const group = new TileGroup([]);
+      expect(group.getScore()).toBe(0);
+    });
+
+    test("returns the score of a group", () => {
+      const group = new TileGroup([red7, red7, red7]);
+      expect(group.getScore()).toBe(21);
+    });
+
+    test("returns the score of a group with a joker", () => {
+      const group = new TileGroup([red7, red7, joker]);
+      expect(group.getScore()).toBe(21);
+    });
+  });
+
+  describe("toString", () => {
+    test("returns the correct string for a group", () => {
+      const group = new TileGroup([red7, red7, red7]);
+      expect(group.toString()).toBe("[Red 7, Red 7, Red 7]");
+    });
+
+    test("returns the correct string for a group with a joker", () => {
+      const group = new TileGroup([red7, red7, joker]);
+      expect(group.toString()).toBe("[Red 7, Red 7, Joker]");
+    });
+  });
 });

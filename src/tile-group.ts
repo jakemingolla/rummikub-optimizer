@@ -78,4 +78,24 @@ export class TileGroup implements TileSet {
   getTiles(): Tile[] {
     return this.tiles;
   }
+
+  getScore(): number {
+    // Try and find the first instance of a numbered tile
+    const value = this.tiles
+      .filter((t) => t instanceof NumberedTile)
+      .pop()
+      ?.getNumber();
+
+    // If there are no numbered tiles, the group is worthless.
+    if (!value) {
+      return 0;
+    }
+
+    // Account for any number of jokers given that all tiles in a group must be the same number.
+    return value * this.tiles.length;
+  }
+
+  toString(): string {
+    return `[${this.tiles.map((t) => t.toString()).join(", ")}]`;
+  }
 }

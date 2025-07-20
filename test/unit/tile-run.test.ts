@@ -161,4 +161,31 @@ describe("tile-run", () => {
       expect(run.getTiles()).toEqual([red7, red8, joker]);
     });
   });
+
+  describe("getting score", () => {
+    test("returns 0 if the run is empty", () => {
+      const run = new TileRun([]);
+      expect(run.getScore()).toBe(0);
+    });
+
+    test("returns the score of a run", () => {
+      const run = new TileRun([red7, red8, red9]);
+      expect(run.getScore()).toBe(24);
+    });
+
+    test("returns the score of a run with a joker in the middle", () => {
+      const run = new TileRun([red7, joker, red9]);
+      expect(run.getScore()).toBe(24);
+    });
+
+    test("returns the score of a run with a joker at the start", () => {
+      const run = new TileRun([joker, red7, red8]);
+      expect(run.getScore()).toBe(24);
+    });
+
+    test("returns the score of a run with a joker at the end", () => {
+      const run = new TileRun([red7, red8, joker]);
+      expect(run.getScore()).toBe(24);
+    });
+  });
 });
