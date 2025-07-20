@@ -47,6 +47,14 @@ export class Player {
     return this.melded;
   }
 
+  /**
+   * Returns a TileSet from a combination of tiles.
+   * Tiles are only added to the set if they have been checked successfully.
+   *
+   * @param combination - The combination of tiles to make a TileSet from.
+   * @param constructor - The constructor of the TileSet to make.
+   * @returns A TileSet from the combination of tiles.
+   */
   private makeTileSetFromCombination<T extends TileSet>(
     combination: Tile[],
     constructor: new (tiles: Tile[]) => T,
@@ -62,6 +70,12 @@ export class Player {
     return set;
   }
 
+  /**
+   * Returns all possible TileSets from a collection of tiles.
+   *
+   * @param tiles - The tiles to make TileSets from.
+   * @returns All possible TileSets from the collection of tiles.
+   */
   makeTileSets(tiles: Tile[]): TileSet[] {
     const sets: TileSet[] = [];
 
@@ -102,6 +116,12 @@ export class Player {
     return sets;
   }
 
+  /**
+   * Returns all possible plays from a collection of tiles.
+   *
+   * @param board - The board to make plays from.
+   * @returns All possible plays from the collection of tiles.
+   */
   makePlay(board: TileSet[]): TileSet[] {
     void board; // TODO DO NOT use board if the player has not melded.
 
@@ -128,6 +148,12 @@ export class Player {
     return plays;
   }
 
+  /**
+   * Draws a tile from the pool and adds it to the player's hand.
+   *
+   * @param pool - The pool to draw a tile from. This is modified in place.
+   * @note The tile is removed from the pool once drawn.
+   */
   draw(pool: Tile[]): void {
     if (pool.length > 0) {
       const randomIndex = Math.floor(Math.random() * pool.length);

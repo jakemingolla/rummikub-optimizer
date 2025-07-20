@@ -51,4 +51,10 @@ export interface TileSet {
    * @returns The tiles that are in the set.
    */
   getTiles(): Tile[];
+
+  /**
+   * Returns the score of the set.
+   * @returns The score of the set.
+   */
+  getScore(): number;
 }
