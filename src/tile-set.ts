@@ -42,9 +42,9 @@ export interface TileSet {
 
   /**
    * Returns the tiles that can be removed from the set.
-   * @returns The tiles that can be removed from the set.
+   * @returns The combinations of tiles that can be removed from the set.
    */
-  getRemovableTiles(): Tile[];
+  getRemovableTiles(): Tile[][];
 
   /**
    * Returns the tiles that are in the set.

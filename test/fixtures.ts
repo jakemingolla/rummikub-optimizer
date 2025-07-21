@@ -1,5 +1,6 @@
 import { NumberedTile, JokerTile, TileColor } from "../src/tile";
 
+export const red6 = new NumberedTile(TileColor.RED, 6);
 export const red7 = new NumberedTile(TileColor.RED, 7);
 export const red8 = new NumberedTile(TileColor.RED, 8);
 export const red9 = new NumberedTile(TileColor.RED, 9);

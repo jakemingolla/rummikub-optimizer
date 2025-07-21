@@ -149,24 +149,81 @@ export class TileRun implements TileSet {
     }
   }
 
-  getRemovableTiles(): Tile[] {
-    if (this.tiles.length <= 3) {
-      return [];
+  getRemovableTiles(): Tile[][] {
+    // Return all combinations of tiles that can be removed from the run.
+    // This MUST leave at least 3 contiguous tiles in the run.
+    // We can only remove numbered tiles from the ends of the run.
+    if (this.tiles.length <= 3) return [];
+
+    const removableTiles: Tile[][] = [];
+
+    // Find all numbered tiles and their positions
+    const numberedTiles: { tile: Tile; index: number }[] = [];
+    for (let i = 0; i < this.tiles.length; i++) {
+      if (!(this.tiles[i] instanceof JokerTile)) {
+        numberedTiles.push({ tile: this.tiles[i]!, index: i });
+      }
     }
 
-    const firstTile = this.tiles.at(0)!;
-    const lastTile = this.tiles.at(-1)!;
+    // If no numbered tiles found, return empty array
+    if (numberedTiles.length === 0) return [];
 
-    const candidates: Tile[] = [];
+    const firstNumbered = numberedTiles[0]!;
+    const lastNumbered = numberedTiles[numberedTiles.length - 1]!;
 
-    if (!(firstTile instanceof JokerTile)) {
-      candidates.push(firstTile);
+    // Check if we can remove from the ends
+    const canRemoveFromStart = firstNumbered.index === 0;
+    const canRemoveFromEnd = lastNumbered.index === this.tiles.length - 1;
+
+    // If jokers are at both ends, we can't remove anything
+    if (!canRemoveFromStart && !canRemoveFromEnd) return [];
+
+    // Single tile removals
+    if (this.tiles.length > 3) {
+      if (canRemoveFromStart) {
+        removableTiles.push([firstNumbered.tile]);
+      }
+      if (canRemoveFromEnd && lastNumbered.tile !== firstNumbered.tile) {
+        removableTiles.push([lastNumbered.tile]);
+      }
     }
-    if (!(lastTile instanceof JokerTile)) {
-      candidates.push(lastTile);
+
+    // Pair removals (only if we have at least 5 tiles to ensure 3 remain)
+    if (this.tiles.length >= 5) {
+      // Remove first two numbered tiles from start
+      if (
+        canRemoveFromStart &&
+        numberedTiles.length >= 2 &&
+        numberedTiles[1]!.index === firstNumbered.index + 1
+      ) {
+        removableTiles.push([firstNumbered.tile, numberedTiles[1]!.tile]);
+      }
+
+      // Remove last two numbered tiles from end
+      if (
+        canRemoveFromEnd &&
+        numberedTiles.length >= 2 &&
+        numberedTiles[numberedTiles.length - 2]!.index ===
+          lastNumbered.index - 1
+      ) {
+        const secondLast = numberedTiles[numberedTiles.length - 2]!;
+        if (secondLast.tile !== firstNumbered.tile) {
+          removableTiles.push([secondLast.tile, lastNumbered.tile]);
+        }
+      }
     }
 
-    return candidates;
+    // Remove first and last numbered tiles (if different and we have at least 5 tiles)
+    if (
+      this.tiles.length >= 5 &&
+      firstNumbered.tile !== lastNumbered.tile &&
+      canRemoveFromStart &&
+      canRemoveFromEnd
+    ) {
+      removableTiles.push([firstNumbered.tile, lastNumbered.tile]);
+    }
+
+    return removableTiles;
   }
 
   getTiles(): Tile[] {

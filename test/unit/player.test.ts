@@ -121,6 +121,103 @@ describe("Player", () => {
       const scores = play.map((p) => p.getScore());
       expect(scores.sort((a, b) => a - b)).toEqual([30, 33]);
     });
+
+    it("cannot make a play that would break an existing group", () => {
+      const existingGroup = new TileGroup([red7, red7, red7, red7]);
+      const player = new Player([black7], true);
+      const play = player.makePlay([existingGroup]);
+      expect(play).toHaveLength(0);
+    });
+
+    it("can remove a tile from an existing group to make a group", () => {
+      const existingGroup = new TileGroup([red7, red7, red7, red7]);
+      const player = new Player([black7, black7], true);
+      const play = player.makePlay([existingGroup]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(21);
+      expect(existingGroup.getTiles()).toHaveLength(3);
+      expect(existingGroup.getScore()).toBe(21);
+    });
+
+    it("can remove a tile from an existing group to make a run", () => {
+      const existingGroup = new TileGroup([red7, red7, red7, red7]);
+      const player = new Player([red8, red9], true);
+      const play = player.makePlay([existingGroup]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(24);
+      expect(existingGroup.getTiles()).toHaveLength(3);
+      expect(existingGroup.getScore()).toBe(21);
+    });
+
+    it("can remove a tile from an existing run to make a group", () => {
+      const existingRun = new TileRun([red7, red8, red9, red10]);
+      const player = new Player([red7, red7], true);
+      const play = player.makePlay([existingRun]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(21);
+      expect(existingRun.getTiles()).toHaveLength(3);
+      expect(existingRun.getScore()).toBe(27);
+    });
+
+    it("can remove a tile from an existing run to make a run", () => {
+      const existingRun = new TileRun([red7, red8, red9, red10]);
+      const player = new Player([red8, red9], true);
+      const play = player.makePlay([existingRun]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(24);
+      expect(existingRun.getTiles()).toHaveLength(3);
+      expect(existingRun.getScore()).toBe(27);
+    });
+
+    it("can remove a tile from multiple groups to make a group", () => {
+      const red7Group = new TileGroup([red7, red7, red7, red7]);
+      const black7Group = new TileGroup([black7, black7, black7, black7]);
+      const player = new Player([red7], true);
+      const play = player.makePlay([red7Group, black7Group]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(21);
+      expect(red7Group.getTiles()).toHaveLength(3);
+      expect(red7Group.getScore()).toBe(21);
+      expect(black7Group.getTiles()).toHaveLength(3);
+      expect(black7Group.getScore()).toBe(21);
+    });
+
+    it("can remove a tile from multiple groups to make a run", () => {
+      const red7Group = new TileGroup([red7, red7, red7, red7]);
+      const red8Group = new TileGroup([red8, red8, red8, red8]);
+      const player = new Player([red9], true);
+      const play = player.makePlay([red7Group, red8Group]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(24);
+      expect(red7Group.getTiles()).toHaveLength(3);
+      expect(red7Group.getScore()).toBe(21);
+      expect(red8Group.getTiles()).toHaveLength(3);
+      expect(red8Group.getScore()).toBe(24);
+    });
+
+    it("can remove a tile from multiple runs to make a group", () => {
+      const firstRun = new TileRun([red7, red8, red9, red10]);
+      const secondRun = new TileRun([red7, red8, red9, red10]);
+      const player = new Player([black7], true);
+      const play = player.makePlay([firstRun, secondRun]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(21);
+      expect(firstRun.getTiles()).toHaveLength(3);
+      expect(firstRun.getScore()).toBe(27);
+      expect(secondRun.getTiles()).toHaveLength(3);
+      expect(secondRun.getScore()).toBe(27);
+    });
+
+    it("cannot make a play solely from removable tiles on the board", () => {
+      // It's possible to make a run by taking the first tile from each group,
+      // but it should not be allowed.
+      const red7Group = new TileGroup([red7, red7, red7, red7]);
+      const red8Group = new TileGroup([red8, red8, red8, red8]);
+      const red9Group = new TileGroup([red9, red9, red9, red9]);
+      const player = new Player([red11], true);
+      const play = player.makePlay([red7Group, red8Group, red9Group]);
+      expect(play).toHaveLength(0);
+    });
   });
 
   describe("draw", () => {

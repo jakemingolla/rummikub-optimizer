@@ -1,6 +1,6 @@
 import { TileRun, InvalidTileRemovalError } from "../../src/tile-run";
 import { describe, expect, test } from "bun:test";
-import { red7, red8, red9, red10, joker, black7 } from "../fixtures";
+import { red6, red7, red8, red9, red10, joker, black7 } from "../fixtures";
 import {
   MissingTileError,
   InvalidJokerTileRemovalError,
@@ -136,11 +136,73 @@ describe("tile-run", () => {
 
     test("returns the first and last tiles if they are not jokers", () => {
       const run = new TileRun([red7, red8, red9, red10]);
-      expect(run.getRemovableTiles()).toEqual([red7, red10]);
+      expect(run.getRemovableTiles()).toEqual([[red7], [red10]]);
     });
 
     test("does not return jokers if they are the first or last tile", () => {
       const run = new TileRun([joker, red7, red8, red9, joker]);
+      expect(run.getRemovableTiles()).toEqual([]);
+    });
+
+    test("leaves at least 3 tiles in the run", () => {
+      const run = new TileRun([red6, red7, red8, red9, red10]);
+      expect(run.getRemovableTiles()).toEqual([
+        [red6],
+        [red10],
+        [red6, red7],
+        [red9, red10],
+        [red6, red10],
+      ]);
+    });
+
+    test("allows removing a numbered tile if it starts with a joker", () => {
+      const run = new TileRun([joker, red7, red8, red9, red10]);
+      expect(run.getRemovableTiles()).toEqual([[red10], [red9, red10]]);
+    });
+
+    test("allows removing a numbered tile if it ends with a joker", () => {
+      const run = new TileRun([red6, red7, red8, red9, joker]);
+      expect(run.getRemovableTiles()).toEqual([[red6], [red6, red7]]);
+    });
+
+    test("handles run with only jokers", () => {
+      const run = new TileRun([joker, joker, joker, joker]);
+      expect(run.getRemovableTiles()).toEqual([]);
+    });
+
+    test("handles run with jokers in the middle", () => {
+      const run = new TileRun([red6, joker, red8, joker, red10]);
+      expect(run.getRemovableTiles()).toEqual([[red6], [red10], [red6, red10]]);
+    });
+
+    test("handles run with consecutive jokers at start", () => {
+      const run = new TileRun([joker, joker, red8, red9, red10]);
+      expect(run.getRemovableTiles()).toEqual([[red10], [red9, red10]]);
+    });
+
+    test("handles run with consecutive jokers at end", () => {
+      const run = new TileRun([red6, red7, red8, joker, joker]);
+      expect(run.getRemovableTiles()).toEqual([[red6], [red6, red7]]);
+    });
+
+    test("handles run with exactly 4 tiles", () => {
+      const run = new TileRun([red6, red7, red8, red9]);
+      expect(run.getRemovableTiles()).toEqual([[red6], [red9]]);
+    });
+
+    test("handles run with exactly 5 tiles", () => {
+      const run = new TileRun([red6, red7, red8, red9, red10]);
+      expect(run.getRemovableTiles()).toEqual([
+        [red6],
+        [red10],
+        [red6, red7],
+        [red9, red10],
+        [red6, red10],
+      ]);
+    });
+
+    test("handles run with single numbered tile between jokers", () => {
+      const run = new TileRun([joker, red7, joker, red9, joker]);
       expect(run.getRemovableTiles()).toEqual([]);
     });
   });

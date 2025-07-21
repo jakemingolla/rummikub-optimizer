@@ -88,9 +88,14 @@ describe("tile-group", () => {
       expect(group.getRemovableTiles()).toEqual([]);
     });
 
-    test("returns the tiles if the group has more than 3 tiles", () => {
-      const group = new TileGroup([red7, red7, red7, red7]);
-      expect(group.getRemovableTiles()).toEqual([red7, red7, red7, red7]);
+    test("returns the removable tiles if the group has more than 3 tiles", () => {
+      const group = new TileGroup([red7, red7, red7, black7]);
+      expect(group.getRemovableTiles()).toEqual([
+        [red7],
+        [red7],
+        [red7],
+        [black7],
+      ]);
     });
   });
 

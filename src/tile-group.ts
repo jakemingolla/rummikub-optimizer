@@ -2,6 +2,7 @@ import type { Tile } from "./tile";
 import type { TileSet } from "./tile-set";
 import { MissingTileError, InvalidJokerTileRemovalError } from "./tile-set";
 import { JokerTile, NumberedTile } from "./tile";
+import { generateCombinationsWithMinRemaining } from "./utils";
 
 export class TileGroup implements TileSet {
   private tiles: Tile[];
@@ -67,11 +68,11 @@ export class TileGroup implements TileSet {
     throw new MissingTileError(tile);
   }
 
-  getRemovableTiles(): Tile[] {
+  getRemovableTiles(): Tile[][] {
     if (this.tiles.length <= 3) {
       return [];
     } else {
-      return this.tiles;
+      return generateCombinationsWithMinRemaining(this.tiles, 3);
     }
   }
 
