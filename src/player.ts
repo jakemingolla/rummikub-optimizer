@@ -3,7 +3,7 @@ import { JokerTile } from "./tile";
 import type { TileSet } from "./tile-set";
 import { TileGroup } from "./tile-group";
 import { TileRun } from "./tile-run";
-import { generateCombinations } from "./utils";
+import { generateCombinations, generateNestedCombinations } from "./utils";
 import { MELD_THRESHOLD, JOKER_SCORE } from "./constants";
 
 export class Player {
@@ -117,26 +117,79 @@ export class Player {
   }
 
   /**
-   * Returns all possible plays from a collection of tiles.
+   * Returns all possible plays from a combination of the tiles on the board and the player's hand.
    *
    * @param board - The board to make plays from.
-   * @returns All possible plays from the collection of tiles.
+   * @returns The best play to make.
+   * @note The board is modified in place.
+   * @note The player's hand is modified in place.
    */
   makePlay(board: TileSet[]): TileSet[] {
-    void board; // TODO DO NOT use board if the player has not melded.
+    // Begin by determining the best play from solely the player's hand.
+    let bestPlay = this.makeTileSets([...this.hand]);
+    let bestScore = bestPlay.reduce((sum, play) => sum + play.getScore(), 0);
 
-    const candidates: Tile[] = [...this.hand];
-    let plays = this.makeTileSets(candidates);
+    // If the player has melded, we are allowed to make a play using the tiles on the board.
+    // First generate all possible combinations of TileSets on the board and their removable tiles.
+    const allCombinationsOfExistingTileSetsAndTheirRemovableTiles = this.melded
+      ? generateNestedCombinations(
+          board.map((set, index) => ({
+            id: index.toString(),
+            values: set.getRemovableTiles(),
+          })),
+        )
+      : [];
+    // This will keep track of the tiles we need to remove from the board corresponding to the
+    // best play we find.
+    let tilesToRemove: Record<string, Tile[]> = {};
 
-    // If a player has not yet melded, they may ONLY make a single play over the meld threshold.
-    if (!this.hasMelded()) {
-      plays = plays.filter((play) => play.getScore() >= MELD_THRESHOLD);
-      if (plays.length > 0) {
-        plays = [plays[0]!];
+    // For each combination of TileSets on the board and their removable tiles, we will generate
+    // all possible plays and keep track of the best play we've found so far.
+    for (const combination of allCombinationsOfExistingTileSetsAndTheirRemovableTiles) {
+      const possibleTiles = combination.map((c) => c.values.flat()).flat();
+      const possiblePlay = this.makeTileSets(possibleTiles.concat(this.hand));
+      const possiblePlaysScore = possiblePlay.reduce(
+        (sum, play) => sum + play.getScore(),
+        0,
+      );
+
+      // If the score of the possible play is greater than the best score we've found so far,
+      // we update the best score, the best play, and the tiles we need to remove from the board
+      // after making the play.
+      if (possiblePlaysScore > bestScore) {
+        bestScore = possiblePlaysScore;
+        bestPlay = possiblePlay;
+        tilesToRemove = combination.reduce(
+          (acc, c) => {
+            acc[c.id] = c.values.flat();
+            return acc;
+          },
+          {} as Record<string, Tile[]>,
+        );
       }
     }
 
-    for (const play of plays) {
+    // If a player has not yet melded, they may ONLY make a single play over the meld threshold.
+    if (!this.hasMelded()) {
+      bestPlay = bestPlay.filter((play) => play.getScore() >= MELD_THRESHOLD);
+      if (bestPlay.length > 0) {
+        bestPlay = [bestPlay[0]!];
+      }
+    }
+
+    // Remove the tiles from the board that are in the best play.
+    for (const [id, tiles] of Object.entries(tilesToRemove)) {
+      for (const tile of tiles) {
+        const index = parseInt(id);
+        const tileSet = board[index];
+        if (tileSet) {
+          tileSet.remove(tile);
+        }
+      }
+    }
+
+    // Remove the tiles from the player's hand that are in the best play.
+    for (const play of bestPlay) {
       for (const tile of play.getTiles()) {
         const index = this.hand.indexOf(tile);
         if (index !== -1) {
@@ -145,7 +198,7 @@ export class Player {
       }
     }
 
-    return plays;
+    return bestPlay;
   }
 
   /**

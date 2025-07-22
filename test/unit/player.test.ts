@@ -1,6 +1,16 @@
 import { describe, it, expect } from "bun:test";
 import { Player } from "../../src/player";
-import { joker, black7, red8, red7, red9, red10, red11 } from "../fixtures";
+import {
+  joker,
+  black7,
+  red8,
+  red7,
+  red9,
+  red10,
+  red11,
+  orange7,
+  blue7,
+} from "../fixtures";
 import { TileGroup } from "../../src/tile-group";
 import { TileRun } from "../../src/tile-run";
 import { MELD_THRESHOLD, JOKER_SCORE } from "../../src/constants";
@@ -130,7 +140,7 @@ describe("Player", () => {
     });
 
     it("can remove a tile from an existing group to make a group", () => {
-      const existingGroup = new TileGroup([red7, red7, red7, red7]);
+      const existingGroup = new TileGroup([red7, blue7, orange7, red7]);
       const player = new Player([black7, black7], true);
       const play = player.makePlay([existingGroup]);
       expect(play).toHaveLength(1);
@@ -217,6 +227,21 @@ describe("Player", () => {
       const player = new Player([red11], true);
       const play = player.makePlay([red7Group, red8Group, red9Group]);
       expect(play).toHaveLength(0);
+    });
+
+    it("cannot reuse a tile from a group on the board to make multiple groups", () => {
+      const red7Group = new TileGroup([red7, red7, red7, red7]);
+      const player = new Player([red7, red7, red8, red9], true);
+      const play = player.makePlay([red7Group]);
+      expect(play).toHaveLength(1);
+    });
+
+    it("does not remove tiles from the player's hand that were not used", () => {
+      const player = new Player([red8, red9], true);
+      const board = [new TileRun([red9, red10, red11])];
+      const play = player.makePlay(board);
+      expect(play).toHaveLength(1);
+      expect(player.getScore()).toBe(9);
     });
   });
 

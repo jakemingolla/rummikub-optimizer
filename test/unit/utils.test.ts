@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   generateCombinations,
   generateCombinationsWithMinRemaining,
+  generateNestedCombinations,
 } from "../../src/utils";
 
 describe("generateCombinations", () => {
@@ -59,5 +60,77 @@ describe("generateCombinationsWithMinRemaining", () => {
       ["a", "c"],
       ["b", "c"],
     ]);
+  });
+
+  describe("generateNestedCombinations", () => {
+    test("should generate all possible combinations", () => {
+      const arrays = [
+        { id: "first", values: [1, 2] },
+        { id: "second", values: [3, 4] },
+      ];
+      // prettier-ignore
+      const expected = [
+          [{ id: "first", values: [1] }],
+          [{ id: "first", values: [2] }],
+          [{ id: "second", values: [3] }],
+          [{ id: "second", values: [4] }],
+          [{ id: "first", values: [1, 2] }],
+          [{ id: "second", values: [3, 4] }],
+          [{ id: "first", values: [1] }, { id: "second", values: [3] }],
+          [{ id: "first", values: [1] }, { id: "second", values: [4] }],
+          [{ id: "first", values: [2] }, { id: "second", values: [3] }],
+          [{ id: "first", values: [2] }, { id: "second", values: [4] }],
+          [{ id: "first", values: [1, 2] }, { id: "second", values: [3] }],
+          [{ id: "first", values: [1, 2] }, { id: "second", values: [4] }],
+          [{ id: "first", values: [1] }, { id: "second", values: [3, 4] }],
+          [{ id: "first", values: [2] }, { id: "second", values: [3, 4] }],
+          [{ id: "first", values: [1, 2] }, { id: "second", values: [3, 4] }],
+        ]
+      const result = generateNestedCombinations(arrays);
+      expect(result.length).toBe(expected.length);
+
+      // Sort both arrays to make the comparison order-independent
+      const sortCombinations = (
+        combinations: { id: string; values: number[] }[][],
+      ) => {
+        return combinations.sort((a, b) => {
+          // Sort by the first item's id, then by the first item's values
+          const aFirst = a[0]!;
+          const bFirst = b[0]!;
+          if (aFirst.id !== bFirst.id) {
+            return aFirst.id.localeCompare(bFirst.id);
+          }
+          return JSON.stringify(aFirst.values).localeCompare(
+            JSON.stringify(bFirst.values),
+          );
+        });
+      };
+
+      const sortedResult = sortCombinations(result);
+      const sortedExpected = sortCombinations(expected);
+      expect(sortedResult).toEqual(sortedExpected);
+    });
+
+    test("cannot reuse an id more than once", () => {
+      const array = [{ id: "first", values: [1, 2, 3, 4] }];
+      const result = generateNestedCombinations(array);
+      expect(result).toEqual([
+        [{ id: "first", values: [1] }],
+        [{ id: "first", values: [2] }],
+        [{ id: "first", values: [3] }],
+        [{ id: "first", values: [4] }],
+      ]);
+    });
+
+    test("cannot reuse an id more than once with nested arrays", () => {
+      const array = [{ id: "first", values: [[1], [2], [3], [4]] }];
+      const result = generateNestedCombinations(array);
+      expect(result).toEqual([
+        [{ id: "first", values: [[1]] }],
+        [{ id: "first", values: [[2]] }],
+        [{ id: "first", values: [[3]] }],
+        [{ id: "first", values: [[4]] }],
+      ]);
+    });
   });
 });

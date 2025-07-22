@@ -95,3 +95,71 @@ const generateCombinationsOfSize = <T>(
 
   return combinations;
 };
+
+/**
+ * Generate all possible combinations of a collection of nested collections.
+ * @param input - The input to generate combinations from.
+ * @returns An array of all possible combinations.
+ * @example
+ * ```ts
+  const arrays = [{ id: "first", values: [1,2] }, { id: "second", values: [3,4] }]
+
+  [
+    [{ id: "first", values: [1] }],
+    [{ id: "first", values: [2] }],
+    [{ id: "second", values: [3] }],
+    [{ id: "second", values: [4] }],
+    [{ id: "first", values: [1, 2] }],
+    [{ id: "second", values: [3, 4] }],
+    [{ id: "first", values: [1] }, { id: "second", values: [3] }],
+    [{ id: "first", values: [1] }, { id: "second", values: [4] }],
+    [{ id: "first", values: [2] }, { id: "second", values: [3] }],
+    [{ id: "first", values: [2] }, { id: "second", values: [4] }],
+    [{ id: "first", values: [1, 2] }, { id: "second", values: [3] }],
+    [{ id: "first", values: [1, 2] }, { id: "second", values: [4] }],
+    [{ id: "first", values: [1] }, { id: "second", values: [3, 4] }],
+    [{ id: "first", values: [2] }, { id: "second", values: [3, 4] }],
+    [{ id: "first", values: [1, 2] }, { id: "second", values: [3, 4] }],
+  ]
+  ```
+*/
+export const generateNestedCombinations = <T>(
+  input: { id: string; values: T[] }[],
+): { id: string; values: T[] }[][] => {
+  if (input.length === 0) return [];
+
+  // Generate combinations for each input array
+  const combinationsPerInput = input.map(({ id, values }) => {
+    const isNestedArray = values.length > 0 && Array.isArray(values[0]);
+    const combinations = isNestedArray
+      ? values.map((value) => ({ id, values: [value] }))
+      : generateCombinations(values).map((combination) => ({
+          id,
+          values: combination,
+        }));
+    return combinations;
+  });
+
+  const result: { id: string; values: T[] }[][] = [];
+
+  // For single input: only individual combinations
+  if (input.length === 1) {
+    return combinationsPerInput[0]!
+      .filter((combination) => combination.values.length === 1)
+      .map((combination) => [combination]);
+  }
+
+  // For multiple inputs: all individual combinations + cross-products
+  combinationsPerInput.forEach((combinations) => {
+    combinations.forEach((combination) => result.push([combination]));
+  });
+
+  // Generate cross-products between first two arrays
+  combinationsPerInput[0]!.forEach((first) => {
+    combinationsPerInput[1]!.forEach((second) => {
+      result.push([first, second]);
+    });
+  });
+
+  return result;
+};
