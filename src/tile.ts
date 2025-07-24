@@ -1,16 +1,9 @@
 export enum TileColor {
-  RED = 0,
-  BLUE = 1,
-  ORANGE = 2,
-  BLACK = 3,
+  RED = "RED",
+  BLUE = "BLUE",
+  ORANGE = "ORANGE",
+  BLACK = "BLACK",
 }
-
-export const TileColorToString = {
-  [TileColor.RED]: "Red",
-  [TileColor.BLUE]: "Blue",
-  [TileColor.ORANGE]: "Orange",
-  [TileColor.BLACK]: "Black",
-};
 
 export type Tile = NumberedTile | JokerTile;
 
@@ -31,30 +24,73 @@ export class NumberedTile {
     return this.number;
   }
 
-  equals(other: Tile): boolean {
-    if (other instanceof JokerTile) {
-      return true;
+  toString(): string {
+    return `${this.color} ${this.number}`;
+  }
+
+  equals(other: NumberedTile): boolean {
+    return this.color === other.getColor() && this.number === other.getNumber();
+  }
+}
+
+export class FreeJokerTile {
+  constructor() {}
+
+  toString(): string {
+    return "Free Joker";
+  }
+}
+
+export class BoundJokerTile {
+  private matchingTiles: NumberedTile[];
+
+  constructor(matchingTiles: NumberedTile[]) {
+    this.matchingTiles = matchingTiles;
+  }
+
+  static fromTiles(tiles: NumberedTile[]): BoundJokerTile {
+    if (tiles.every((t) => t.getNumber() === tiles[0]!.getNumber())) {
+      const matchingTiles: NumberedTile[] = [];
+      for (const tileColor of Object.values(TileColor) as TileColor[]) {
+        const tile = new NumberedTile(tileColor, tiles[0]!.getNumber());
+        matchingTiles.push(tile);
+      }
+      return new BoundJokerTile(matchingTiles);
     } else {
-      return (
-        this.color === other.getColor() && this.number === other.getNumber()
+      const tileColor = tiles[0]!.getColor();
+      const lowestNumber = tiles.reduce(
+        (min, t) => Math.min(min, t.getNumber()),
+        Infinity,
       );
+      const highestNumber = tiles.reduce(
+        (max, t) => Math.max(max, t.getNumber()),
+        -Infinity,
+      );
+      const matchingTiles: NumberedTile[] = [
+        new NumberedTile(tileColor, lowestNumber - 1),
+        new NumberedTile(tileColor, highestNumber + 1),
+      ];
+      return new BoundJokerTile(matchingTiles);
     }
   }
 
+  matches(tile: NumberedTile): boolean {
+    return this.matchingTiles.some((t) => t.equals(tile));
+  }
+
+  getNumber(): number {
+    return this.matchingTiles[0]!.getNumber();
+  }
+
+  getColor(): TileColor {
+    return this.matchingTiles[0]!.getColor();
+  }
+
   toString(): string {
-    return `${TileColorToString[this.color]} ${this.number}`;
+    return `Bound Joker (${this.matchingTiles.map((t) => t.toString()).join(", ")})`;
   }
 }
 
-export class JokerTile {
-  constructor() {}
-
-  equals(other: Tile): boolean {
-    void other;
-    return true;
-  }
-
-  toString(): string {
-    return "Joker";
-  }
-}
+export type JokerTile = FreeJokerTile | BoundJokerTile;
+export type TileOnBoard = NumberedTile | BoundJokerTile;
+export type TileInHand = NumberedTile | FreeJokerTile;
