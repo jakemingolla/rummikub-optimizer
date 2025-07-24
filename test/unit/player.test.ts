@@ -236,6 +236,30 @@ describe("Player", () => {
       expect(play).toHaveLength(1);
     });
 
+    it("can add to an existing group on the board", () => {
+      const existingGroup = new TileGroup([red7, red7, red7, red7]);
+      const player = new Player([red7, red7, red7, red7], true);
+      const play = player.makePlay([existingGroup]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(7 * 8);
+      expect(existingGroup.getTiles()).toHaveLength(8);
+      expect(existingGroup.getScore()).toBe(7 * 8);
+      expect(player.getScore()).toBe(0);
+      expect(player.hasWon()).toBe(true);
+    });
+
+    it("can add to an existing run on the board", () => {
+      const existingRun = new TileRun([red7, red8, red9, red10]);
+      const player = new Player([red11], true);
+      const play = player.makePlay([existingRun]);
+      expect(play).toHaveLength(1);
+      expect(play.at(0)!.getScore()).toBe(45);
+      expect(existingRun.getTiles()).toHaveLength(5);
+      expect(existingRun.getScore()).toBe(45);
+      expect(player.getScore()).toBe(0);
+      expect(player.hasWon()).toBe(true);
+    });
+
     it("does not remove tiles from the player's hand that were not used", () => {
       const player = new Player([red8, red9], true);
       const board = [new TileRun([red9, red10, red11])];
