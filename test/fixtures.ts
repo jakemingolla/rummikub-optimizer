@@ -8,6 +8,8 @@ export const red10 = new NumberedTile(TileColor.RED, 10);
 export const red11 = new NumberedTile(TileColor.RED, 11);
 
 export const black7 = new NumberedTile(TileColor.BLACK, 7);
+export const black8 = new NumberedTile(TileColor.BLACK, 8);
+export const black9 = new NumberedTile(TileColor.BLACK, 9);
 export const orange7 = new NumberedTile(TileColor.ORANGE, 7);
 export const blue7 = new NumberedTile(TileColor.BLUE, 7);
 

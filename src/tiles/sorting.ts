@@ -30,6 +30,10 @@ export const getSortedTilesByColor = (
   return sortedTilesByColor;
 };
 
+const sortedByLength = (tiles: TileOnBoard[][]): TileOnBoard[][] => {
+  return tiles.sort((a, b) => b.length - a.length);
+};
+
 export const getConsecutiveTiles = (tiles: TileOnBoard[]): TileOnBoard[][] => {
   const consecutiveTiles: TileOnBoard[][] = [];
   let currentRun: TileOnBoard[] = [];
@@ -46,7 +50,7 @@ export const getConsecutiveTiles = (tiles: TileOnBoard[]): TileOnBoard[][] => {
   if (currentRun.length > 0) {
     consecutiveTiles.push(currentRun);
   }
-  return consecutiveTiles;
+  return sortedByLength(consecutiveTiles);
 };
 
 export const getTilesByNumber = (
