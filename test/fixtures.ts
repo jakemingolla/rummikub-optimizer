@@ -1,4 +1,4 @@
-import { NumberedTile, FreeJokerTile, TileColor } from "../src/tile";
+import { NumberedTile, FreeJokerTile, TileColor } from "../src/tiles";
 
 export const red6 = new NumberedTile(TileColor.RED, 6);
 export const red7 = new NumberedTile(TileColor.RED, 7);
