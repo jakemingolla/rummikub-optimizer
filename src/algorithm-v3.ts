@@ -1,19 +1,13 @@
 import type { Tile } from "./tile";
 import { NumberedTile, TileColor, FreeJokerTile, BoundJokerTile } from "./tile";
-import type { TileOnBoard, TileInHand } from "./tile";
+import type { TileOnBoard } from "./tile";
+import type { GameState } from "./game-state";
+import { MELD_THRESHOLD } from "./constants";
 
-type GameState = {
-  board: TileOnBoard[][];
-  hand: TileInHand[];
-};
-
-const extractTileGroups = (
+const getTilesByNumber = (
   tiles: Tile[],
-): { rest: Tile[]; groups: TileOnBoard[][] } => {
-  const rest: Tile[] = [];
-  const groups: TileOnBoard[][] = [];
+): Record<number, (NumberedTile | BoundJokerTile)[]> => {
   const tilesByNumber: Record<number, (NumberedTile | BoundJokerTile)[]> = {};
-  let freeJokerTiles: FreeJokerTile[] = [];
   for (const tile of tiles) {
     if (tile instanceof NumberedTile || tile instanceof BoundJokerTile) {
       const number = tile.getNumber();
@@ -22,19 +16,35 @@ const extractTileGroups = (
       } else {
         tilesByNumber[number] = [tile];
       }
-    } else if (tile instanceof FreeJokerTile) {
-      freeJokerTiles.push(tile);
     }
   }
-  console.log(
-    `There are ${Object.keys(tilesByNumber).length} unique numbers in tiles`,
-  );
-  console.log(`There are ${freeJokerTiles.length} free joker tiles`);
+  return tilesByNumber;
+};
+
+const bindRemainingFreeJokers = (
+  set: TileOnBoard[],
+  freeJokerTiles: FreeJokerTile[],
+): TileOnBoard[] => {
+  if (freeJokerTiles.length === 0) {
+    return set;
+  }
+  const numberedTiles = set.filter((t) => t instanceof NumberedTile);
+  const boundJokerTiles: BoundJokerTile[] = [];
+  for (let i = 0; i < freeJokerTiles.length; i++) {
+    boundJokerTiles.push(BoundJokerTile.fromTiles(numberedTiles));
+  }
+  return [...set, ...boundJokerTiles];
+};
+
+const extractTileGroups = (
+  tiles: Tile[],
+): { rest: Tile[]; groups: TileOnBoard[][] } => {
+  const rest: Tile[] = [];
+  const groups: TileOnBoard[][] = [];
+  const tilesByNumber = getTilesByNumber(tiles);
+  let freeJokerTiles = tiles.filter((t) => t instanceof FreeJokerTile);
   for (const tiles of Object.values(tilesByNumber)) {
     const jokerTilesNeeded = 3 - tiles.length;
-    console.log(
-      `There are ${tiles.length} tiles of number ${(tiles[0] as NumberedTile).getNumber()}`,
-    );
     if (tiles.length >= 3) {
       groups.push(tiles);
     } else if (jokerTilesNeeded <= freeJokerTiles.length) {
@@ -54,15 +64,7 @@ const extractTileGroups = (
   }
 
   if (freeJokerTiles.length > 0 && groups.length > 0) {
-    const firstGroup = groups[0]!;
-    const numberedTilesInFirstGroup = firstGroup.filter(
-      (t) => t instanceof NumberedTile,
-    );
-    const boundJokerTiles: BoundJokerTile[] = [];
-    for (let i = 0; i < freeJokerTiles.length; i++) {
-      boundJokerTiles.push(BoundJokerTile.fromTiles(numberedTilesInFirstGroup));
-    }
-    groups[0]!.push(...boundJokerTiles);
+    groups[0] = bindRemainingFreeJokers(groups[0]!, freeJokerTiles);
   } else {
     rest.push(...freeJokerTiles);
   }
@@ -70,12 +72,7 @@ const extractTileGroups = (
   return { rest, groups };
 };
 
-const extractTileRuns = (
-  tiles: Tile[],
-): { rest: Tile[]; runs: TileOnBoard[][] } => {
-  const rest: Tile[] = [];
-  const runs: TileOnBoard[][] = [];
-  let freeJokerTiles: FreeJokerTile[] = [];
+const sortTilesByColor = (tiles: Tile[]): Record<TileColor, TileOnBoard[]> => {
   const sortedTilesByColor: Record<TileColor, TileOnBoard[]> = Object.values(
     TileColor,
   ).reduce(
@@ -85,7 +82,6 @@ const extractTileRuns = (
     },
     {} as Record<TileColor, TileOnBoard[]>,
   );
-
   for (const tile of tiles) {
     if (tile instanceof NumberedTile) {
       const tilesOfSameColor = sortedTilesByColor[tile.getColor()];
@@ -98,47 +94,50 @@ const extractTileRuns = (
       } else {
         tilesOfSameColor.splice(index, 0, tile);
       }
-      // TODO doesn't handle bound jokers
-    } else if (tile instanceof FreeJokerTile) {
-      freeJokerTiles.push(tile);
     }
   }
+  return sortedTilesByColor;
+};
 
+const getConsecutiveTiles = (tiles: TileOnBoard[]): TileOnBoard[][] => {
   const consecutiveTiles: TileOnBoard[][] = [];
-  for (const tilesOfSameColor of Object.values(sortedTilesByColor)) {
-    let currentRun: TileOnBoard[] = [];
-
-    for (const tile of tilesOfSameColor) {
-      if (currentRun.length === 0) {
-        currentRun.push(tile);
-      } else if (currentRun.at(-1)!.getNumber() + 1 === tile.getNumber()) {
-        currentRun.push(tile);
-      } else {
-        consecutiveTiles.push(currentRun);
-        currentRun = [tile];
-      }
-    }
-    if (currentRun.length > 0) {
+  let currentRun: TileOnBoard[] = [];
+  for (const tile of tiles) {
+    if (currentRun.length === 0) {
+      currentRun.push(tile);
+    } else if (currentRun.at(-1)!.getNumber() + 1 === tile.getNumber()) {
+      currentRun.push(tile);
+    } else {
       consecutiveTiles.push(currentRun);
+      currentRun = [tile];
     }
   }
+  if (currentRun.length > 0) {
+    consecutiveTiles.push(currentRun);
+  }
+  return consecutiveTiles;
+};
 
-  console.log(
-    `There are ${consecutiveTiles.length} groups of consecutive tiles`,
+const extractTileRuns = (
+  tiles: Tile[],
+): { rest: Tile[]; runs: TileOnBoard[][] } => {
+  const rest: Tile[] = [];
+  const runs: TileOnBoard[][] = [];
+  let freeJokerTiles: FreeJokerTile[] = tiles.filter(
+    (t) => t instanceof FreeJokerTile,
+  );
+  const sortedTilesByColor = sortTilesByColor(tiles);
+  const consecutiveTiles = getConsecutiveTiles(
+    Object.values(sortedTilesByColor).flat(),
   );
 
   for (const potentialRun of consecutiveTiles) {
     const jokerTilesNeeded = 3 - potentialRun.length;
-    console.log(
-      `There are ${potentialRun.length} consecutive tiles of color ${potentialRun[0]!.getColor()} and ${freeJokerTiles.length} free joker tiles left`,
-    );
     if (potentialRun.length >= 3) {
-      console.log(`Adding a run of ${potentialRun.length} tiles to the board`);
       runs.push(potentialRun);
     } else if (jokerTilesNeeded <= freeJokerTiles.length) {
       const boundJokerTiles: BoundJokerTile[] = [];
       for (let i = 0; i < jokerTilesNeeded; i++) {
-        console.log(`Adding a joker tile to the run, ${potentialRun}`);
         boundJokerTiles.push(
           BoundJokerTile.fromTiles(
             potentialRun.filter((t) => t instanceof NumberedTile),
@@ -153,15 +152,7 @@ const extractTileRuns = (
   }
 
   if (freeJokerTiles.length > 0 && runs.length > 0) {
-    const firstGroup = runs[0]!;
-    const numberedTilesInFirstGroup = firstGroup.filter(
-      (t) => t instanceof NumberedTile,
-    );
-    const boundJokerTiles: BoundJokerTile[] = [];
-    for (let i = 0; i < freeJokerTiles.length; i++) {
-      boundJokerTiles.push(BoundJokerTile.fromTiles(numberedTilesInFirstGroup));
-    }
-    runs[0]!.push(...boundJokerTiles);
+    runs[0] = bindRemainingFreeJokers(runs[0]!, freeJokerTiles);
   } else {
     rest.push(...freeJokerTiles);
   }
@@ -175,18 +166,12 @@ export const substituteJokers = (gameState: GameState): GameState => {
     (t) => t instanceof NumberedTile,
   );
   const addedFreeJokerTiles: FreeJokerTile[] = [];
-  console.log(
-    `There are ${numberedTilesInHand.length} numbered tiles in the hand`,
-  );
   for (const set of board) {
     const boundJokerTiles = set.filter((t) => t instanceof BoundJokerTile);
     for (const boundJokerTile of boundJokerTiles) {
       for (const tile of numberedTilesInHand) {
         if (boundJokerTile.matches(tile)) {
           const indexOfNumberedTileInHand = numberedTilesInHand.indexOf(tile);
-          console.log(
-            `Substituting ${tile.toString()} into ${boundJokerTile.toString()}`,
-          );
           numberedTilesInHand.splice(indexOfNumberedTileInHand, 1);
           addedFreeJokerTiles.push(new FreeJokerTile());
           const indexOfBoundJokerTileInSet = set.indexOf(boundJokerTile);
@@ -195,10 +180,31 @@ export const substituteJokers = (gameState: GameState): GameState => {
       }
     }
   }
-  console.log(`There are ${addedFreeJokerTiles.length} added free joker tiles`);
   return {
     board,
     hand: [...numberedTilesInHand, ...addedFreeJokerTiles],
+  };
+};
+
+const getScore = (tiles: TileOnBoard[]): number => {
+  return tiles.reduce((acc, tile) => acc + tile.getNumber(), 0);
+};
+
+export const findBestMeldingPlay = (gameState: GameState): GameState => {
+  const { hand, board } = gameState;
+  const { groups, rest: ungrouped } = extractTileGroups(hand);
+  const { runs, rest: remainingTiles } = extractTileRuns(ungrouped);
+  const bestSet = groups.concat(runs).reduce((bestMeldingSet, currentSet) => {
+    const score = getScore(currentSet);
+    if (score >= MELD_THRESHOLD && score > getScore(bestMeldingSet)) {
+      return currentSet;
+    }
+    return bestMeldingSet;
+  }, [] as TileOnBoard[]);
+
+  return {
+    board: [...board, bestSet],
+    hand: remainingTiles,
   };
 };
 
@@ -214,19 +220,8 @@ export const findBestPlay = (gameState: GameState): GameState => {
     }
   }
   const allEligibleTiles: Tile[] = [...eligbleTilesOnBoard, ...hand];
-  console.log(
-    `There are ${allEligibleTiles.length} eligible tiles in the game state`,
-  );
-  console.log(`There are ${ineligibleTileSets.length} ineligible tile sets.`);
   const { groups, rest: ungrouped } = extractTileGroups(allEligibleTiles);
-  console.log(`There are ${groups.length} groups`);
-  for (const group of groups) {
-    console.log(`Group of ${group[0]!.getNumber()} has ${group.length} tiles`);
-  }
-  console.log(`There are ${ungrouped.length} ungrouped tiles`);
   const { runs, rest } = extractTileRuns(ungrouped);
-  console.log(`There are ${runs.length} runs`);
-  console.log(`There are ${rest.length} remaining tiles`);
 
   return {
     board: [...groups, ...runs, ...ineligibleTileSets],
