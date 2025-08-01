@@ -1,4 +1,4 @@
-import type { TileOnBoard, TileInHand } from "./tiles";
+import type { TileOnBoard, TileInHand } from "./tiles/tile";
 
 export type GameState = {
   board: TileOnBoard[][];

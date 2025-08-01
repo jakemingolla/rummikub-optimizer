@@ -3,8 +3,8 @@ import {
   BoundJokerTile,
   NumberedTile,
   TileColor,
-} from "../tiles";
-import type { Tile, TileOnBoard } from "../tiles";
+} from "../tiles/tile";
+import type { Tile, TileOnBoard } from "../tiles/tile";
 import { getSortedTilesByColor } from "../tiles/sorting";
 import { getConsecutiveTiles } from "../tiles/sorting";
 import { bindRemainingFreeJokers } from "./jokers";

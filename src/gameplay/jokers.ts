@@ -1,5 +1,5 @@
-import { FreeJokerTile, BoundJokerTile, NumberedTile } from "../tiles";
-import type { TileOnBoard } from "../tiles";
+import { FreeJokerTile, BoundJokerTile, NumberedTile } from "../tiles/tile";
+import type { TileOnBoard } from "../tiles/tile";
 
 export const bindRemainingFreeJokers = (
   set: TileOnBoard[],

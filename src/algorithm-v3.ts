@@ -1,6 +1,6 @@
-import type { Tile } from "./tiles";
-import { NumberedTile, FreeJokerTile, BoundJokerTile } from "./tiles";
-import type { TileOnBoard } from "./tiles";
+import type { Tile } from "./tiles/tile";
+import { NumberedTile, FreeJokerTile, BoundJokerTile } from "./tiles/tile";
+import type { TileOnBoard } from "./tiles/tile";
 import type { GameState } from "./game-state";
 import { MELD_THRESHOLD } from "./constants";
 import { getTileGroups } from "./gameplay/get-tile-groups";

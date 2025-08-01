@@ -1,5 +1,5 @@
-import { TileColor, NumberedTile, BoundJokerTile } from "./index";
-import type { TileOnBoard, Tile } from "./index";
+import { TileColor, NumberedTile, BoundJokerTile } from "./tile";
+import type { TileOnBoard, Tile } from "./tile";
 
 export const getSortedTilesByColor = (
   tiles: Tile[],

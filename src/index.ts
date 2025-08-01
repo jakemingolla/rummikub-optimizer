@@ -1,6 +1,6 @@
 import { findBestPlay, findBestMeldingPlay } from "./algorithm-v3";
-import type { Tile, TileOnBoard, TileInHand } from "./tiles";
-import { FreeJokerTile, NumberedTile, TileColor } from "./tiles";
+import type { Tile, TileOnBoard, TileInHand } from "./tiles/tile";
+import { FreeJokerTile, NumberedTile, TileColor } from "./tiles/tile";
 import shuffle from "knuth-shuffle-seeded";
 import { STARTING_HAND_SIZE, NUMBER_OF_PLAYERS } from "./constants";
 

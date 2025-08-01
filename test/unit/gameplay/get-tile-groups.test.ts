@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { getTileGroups } from "../../../src/gameplay/get-tile-groups";
 import { red7, red8, black7, freeJoker, red10, red9 } from "../../fixtures";
-import type { Tile } from "../../../src/tiles";
-import { BoundJokerTile } from "../../../src/tiles";
+import type { Tile } from "../../../src/tiles/tile";
+import { BoundJokerTile } from "../../../src/tiles/tile";
 
 describe("getTileGroups", () => {
   test("should return the nothing if there are no tiles", () => {

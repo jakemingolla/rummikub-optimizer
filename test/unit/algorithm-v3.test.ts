@@ -1,5 +1,5 @@
 import { findBestPlay, substituteJokers } from "../../src/algorithm-v3";
-import { BoundJokerTile } from "../../src/tiles";
+import { BoundJokerTile } from "../../src/tiles/tile";
 import { describe, it, expect } from "bun:test";
 import {
   freeJoker,

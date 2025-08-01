@@ -12,8 +12,8 @@ import {
   black9,
   orange7,
 } from "../../fixtures";
-import type { Tile } from "../../../src/tiles";
-import { BoundJokerTile } from "../../../src/tiles";
+import type { Tile } from "../../../src/tiles/tile";
+import { BoundJokerTile } from "../../../src/tiles/tile";
 
 describe("getTileRuns", () => {
   test("should return the nothing if there are no tiles", () => {

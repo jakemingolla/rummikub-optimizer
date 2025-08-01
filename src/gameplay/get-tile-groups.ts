@@ -1,5 +1,5 @@
-import { FreeJokerTile, NumberedTile, BoundJokerTile } from "../tiles";
-import type { Tile, TileOnBoard } from "../tiles";
+import { FreeJokerTile, NumberedTile, BoundJokerTile } from "../tiles/tile";
+import type { Tile, TileOnBoard } from "../tiles/tile";
 import { getTilesByNumber } from "../tiles/sorting";
 import { bindRemainingFreeJokers } from "./jokers";
 
