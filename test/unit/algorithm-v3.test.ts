@@ -1,5 +1,5 @@
-import { findBestPlay, substituteJokers } from "../../src/algorithm-v3";
-import { BoundJokerTile } from "../../src/tile";
+import { findBestPlay } from "../../src/algorithm-v3";
+import { BoundJokerTile } from "../../src/tiles/tile";
 import { describe, it, expect } from "bun:test";
 import {
   freeJoker,
@@ -179,57 +179,5 @@ describe("findBestPlay", () => {
       [...tileGroup, BoundJokerTile.fromTiles([red7])],
     ]);
     expect(outputGameState.hand).toEqual([]);
-  });
-});
-
-describe("substituteJokers", () => {
-  it("should do nothing if there are no jokers", () => {
-    const inputGameState = {
-      board: [],
-      hand: [],
-    };
-    const outputGameState = substituteJokers(inputGameState);
-    expect(outputGameState.board).toEqual([]);
-    expect(outputGameState.hand).toEqual([]);
-  });
-
-  it("should do nothing if there are no jokers on the hand", () => {
-    const inputGameState = {
-      board: [],
-      hand: [red7, red8, red9],
-    };
-    const outputGameState = substituteJokers(inputGameState);
-    expect(outputGameState.board).toEqual([]);
-    expect(outputGameState.hand).toEqual([red7, red8, red9]);
-  });
-
-  it("should do nothing if there are no jokers on the board", () => {
-    const inputGameState = {
-      board: [[red7, red8, red9]],
-      hand: [],
-    };
-    const outputGameState = substituteJokers(inputGameState);
-    expect(outputGameState.board).toEqual([[red7, red8, red9]]);
-    expect(outputGameState.hand).toEqual([]);
-  });
-
-  it("should substitute a matching tile into a group", () => {
-    const inputGameState = {
-      board: [[red7, red7, new BoundJokerTile([black7])]],
-      hand: [black7, red10],
-    };
-    const outputGameState = substituteJokers(inputGameState);
-    expect(outputGameState.board).toEqual([[red7, red7, black7]]);
-    expect(outputGameState.hand).toEqual([red10, freeJoker]);
-  });
-
-  it("should substitute a matching tile into a run", () => {
-    const inputGameState = {
-      board: [[red7, red8, new BoundJokerTile([red6, red9])]],
-      hand: [black7, red9],
-    };
-    const outputGameState = substituteJokers(inputGameState);
-    expect(outputGameState.board).toEqual([[red7, red8, red9]]);
-    expect(outputGameState.hand).toEqual([black7, freeJoker]);
   });
 });

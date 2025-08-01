@@ -28,6 +28,12 @@ export class NumberedTile {
     return `${this.color} ${this.number}`;
   }
 
+  /**
+   * Checks if two numbered tiles are equal by color and number.
+   *
+   * @param other - The tile to compare to.
+   * @returns True if the tiles are equal, false otherwise.
+   */
   equals(other: NumberedTile): boolean {
     return this.color === other.getColor() && this.number === other.getNumber();
   }
@@ -48,7 +54,14 @@ export class BoundJokerTile {
     this.matchingTiles = matchingTiles;
   }
 
+  /**
+   * Creates a bound joker tile from a list of tiles.
+   *
+   * @param tiles - The tiles to create a bound joker tile from.
+   * @returns A new bound joker tile.
+   */
   static fromTiles(tiles: NumberedTile[]): BoundJokerTile {
+    // If the input tiles form a group, create a bound joker tile that matches the same number in each color.
     if (tiles.every((t) => t.getNumber() === tiles[0]!.getNumber())) {
       const matchingTiles: NumberedTile[] = [];
       for (const tileColor of Object.values(TileColor) as TileColor[]) {
@@ -56,6 +69,7 @@ export class BoundJokerTile {
         matchingTiles.push(tile);
       }
       return new BoundJokerTile(matchingTiles);
+      // Otherwise, create a bound joker tile that matches the lowest and highest numbers in the same color.
     } else {
       const tileColor = tiles[0]!.getColor();
       const lowestNumber = tiles.reduce(

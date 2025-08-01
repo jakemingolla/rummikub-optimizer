@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { red7, red8, black7, freeJoker, red9, red10 } from "../fixtures";
-import { BoundJokerTile, TileColor } from "../../src/tile";
+import { red7, red8, black7, freeJoker, red9, red10 } from "../../fixtures";
+import { BoundJokerTile, TileColor } from "../../../src/tiles/tile";
 
 describe("tile", () => {
   describe("numbered tiles", () => {
