@@ -16,7 +16,6 @@ export const getSortedTilesByColor = (
   for (const tile of tiles) {
     if (tile instanceof NumberedTile) {
       const tilesOfSameColor = sortedTilesByColor[tile.getColor()];
-      // Insert the tile into the correct position in the array
       const index = sortedTilesByColor[tile.getColor()].findIndex(
         (t) => t.getNumber() > tile.getNumber(),
       );

@@ -5,6 +5,7 @@ import type { GameState } from "./game-state";
 import { MELD_THRESHOLD } from "./constants";
 import { getTileGroups } from "./gameplay/get-tile-groups";
 import { getTileRuns } from "./gameplay/get-tile-runs";
+import { getScore } from "./tiles/scoring";
 
 export const substituteJokers = (gameState: GameState): GameState => {
   const { board, hand } = gameState;
@@ -30,10 +31,6 @@ export const substituteJokers = (gameState: GameState): GameState => {
     board,
     hand: [...numberedTilesInHand, ...addedFreeJokerTiles],
   };
-};
-
-const getScore = (tiles: TileOnBoard[]): number => {
-  return tiles.reduce((acc, tile) => acc + tile.getNumber(), 0);
 };
 
 export const findBestMeldingPlay = (gameState: GameState): GameState => {
