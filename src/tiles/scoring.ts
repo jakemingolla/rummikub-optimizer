@@ -2,6 +2,12 @@ import type { TileOnBoard, TileInHand } from "./tile";
 import { FreeJokerTile } from "./tile";
 import { JOKER_SCORE } from "../constants";
 
+/**
+ * Returns the score of a list of tiles.
+ *
+ * @param tiles - The tiles to score.
+ * @returns The score of the tiles.
+ */
 export function getScore(tiles: TileOnBoard[]): number;
 export function getScore(tiles: TileInHand[]): number;
 export function getScore(tiles: TileOnBoard[] | TileInHand[]): number {

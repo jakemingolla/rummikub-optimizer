@@ -9,6 +9,12 @@ import { getSortedTilesByColor } from "../tiles/sorting";
 import { getConsecutiveTiles } from "../tiles/sorting";
 import { bindRemainingFreeJokers } from "./jokers";
 
+/**
+ * Returns a list of tile runs and a list of tiles that are not part of any run.
+ *
+ * @param tiles - The tiles to find runs in.
+ * @returns A tuple containing a list of tiles that are not part of any run and a list of tile runs.
+ */
 export const getTileRuns = (
   tiles: Tile[],
 ): { rest: Tile[]; runs: TileOnBoard[][] } => {
@@ -26,6 +32,7 @@ export const getTileRuns = (
     const consecutiveTiles = getConsecutiveTiles(sortedTilesOfSameColor);
     const insufficientRuns: TileOnBoard[][] = [];
 
+    // Split out runs that are at least 3 tiles from the invalid runs.
     for (const run of consecutiveTiles) {
       if (run.length >= 3) {
         runs.push(run);
@@ -34,6 +41,10 @@ export const getTileRuns = (
       }
     }
 
+    // Attempt to fill in the cracks of the runs with a free joker tile.
+    // If this is the case, we should check the next run to see if it can be extended.
+    // For example, if the insufficient runs are [[7], [9]] and we have a free joker,
+    // we can make a run of [7, BoundJokerTile([8]), 9].
     for (let i = 0; i < insufficientRuns.length; i++) {
       const currentRun = insufficientRuns[i]!;
       const nextRun = insufficientRuns[i + 1];
@@ -78,6 +89,8 @@ export const getTileRuns = (
     }
   }
 
+  // If there are any free joker tiles left, bind them to the first run.
+  // TODO this should be configurable via a priority.
   if (freeJokerTiles.length > 0 && runs.length > 0) {
     runs[0] = bindRemainingFreeJokers(runs[0]!, freeJokerTiles);
   } else {
